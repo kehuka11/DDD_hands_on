@@ -1,0 +1,142 @@
+@startuml OrderAggregation
+
+title 注文集約 (Order Aggregation)
+
+package "注文集約(OrderAggregation)" {
+
+    class "Order(注文)" as Order << (R,red) RootEntity >> {
+        OrderId: OrderId
+        OrderDateTime: 注文日時
+        Status: ステータス
+        TotalAmout: 合計
+    }
+
+    class "OrderId" as OrderId {
+        + id: UUID
+    }
+
+    note bottom of OrderId
+        UUIDを適用する。
+        初回作成時UUIDでIDを生成する
+        初回作成時引数を受け取ったらUUIDの形式に一致するかの検証をする
+    end note
+
+    class "OrderDateTime" as OrderDateTime {
+        + datetime: LocalDateTime
+    }
+
+    note bottom of OrderDateTime
+        日本標準時として扱うこと。
+    end note
+
+    class "Status" as Status {
+        + status: Enum { UNORDERED, ORDERED, DELIVERED }
+    }
+
+    note bottom of Status
+        初回作成時はUNORDEREDから始まる
+        UNORDEREDは未注文
+        ORDEREDは注文済み
+        DELIVEREDは配達済み
+    end note
+
+    class "TotalAmout" as TotalAmout {
+        + amount: Integer
+        + subtotal: Subtotal
+        + taxAmount: TaxAmount
+        + feeAmount: FeeAmount
+    }
+
+    note bottom of TotalAmout
+        日本円で扱う
+        MIN=0
+    end note
+
+    class "TaxAmount" as TaxAmount {
+        + amount: Integer
+    }
+
+    note bottom of TaxAmount
+        日本円で扱う。
+        小数点以下は切り捨て
+        MIN=0
+    end note
+
+    class "FeeAmount" as FeeAmount {
+        + amount: Integer
+    }
+
+    note bottom of FeeAmount
+        日本円で扱う。
+        小数点以下は切り捨て
+        MIN=0
+    end note
+
+    class "OrderGoods(注文商品)" as OrderGoods << (E,green) Entity >> {
+        GoodsSummary: 商品一覧
+        subtotal: 小計
+    }
+
+    class "GoodsId" as GoodsId {
+        + id: UUID
+    }
+
+    note bottom of GoodsId
+        UUIDを適用する。
+    end note
+
+    class "Quantity" as Quantity {
+        + value: Integer
+    }
+
+    note bottom of Quantity
+        MIN=0
+    end note
+
+    class "Subtotal" as Subtotal {
+        + amount: Integer
+    }
+
+    note bottom of Subtotal
+        日本円で扱う
+        MIN=0
+    end note
+
+
+    class "PaymentMethod(決済手段)" as PaymentMethod << (E,green) Entity >> {
+        PaymentMethodType: 決済種別
+    }
+
+    class "PaymentMethodType" as PaymentMethodType {
+        + type: Enum { CREDIT_CARD("01"), E_MONEY("02"), BANK_TRANSFER("03") }
+    }
+
+    note bottom of PaymentMethodType
+        CREDIT_CARDはクレジットカード
+        E_MONEYは電子マネー
+        BANK_TRANSFERは銀行振り込み
+    end note
+
+    Order "1" -down- "1" OrderGoods : has >
+
+    Order "1" -down- "1" PaymentMethod : has >
+
+    Order *-down- OrderId
+    Order *-down- OrderDateTime
+    Order *-down- Status
+    Order *-down- TotalAmout
+
+    TotalAmout *-down- Subtotal
+    TotalAmout *-down- TaxAmount
+    TotalAmout *-down- FeeAmount
+
+    OrderGoods *-down- GoodsId
+    OrderGoods *-down- Subtotal
+    OrderGoods *-down- Quantity
+
+    PaymentMethod *-down- PaymentMethodType
+}
+
+
+
+@enduml

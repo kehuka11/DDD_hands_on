@@ -1,0 +1,21 @@
+####spring####
+spring:
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/order
+    username: user
+    password: Password123
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      leakDetectionThreshold: 60000
+      maximumPoolSize: 10
+      minimumIdle: 5
+
+server:
+  timezone: Asia/Tokyo
+
+
+logging:
+  level:
+    org:
+      jooq: DEBUG
